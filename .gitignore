@@ -1,2 +1,8 @@
 todo.txt
 node_modules
+.DS_Store
+.gitignore
+sql/
+.env
+useful_commands.txt
+vite.config.js
