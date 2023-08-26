@@ -10,8 +10,10 @@ const requireAuth = (req, res, next) => {
         if (err) {
             console.log(err.message)
             res.redirect('/login')
+            next()
         } else {
             console.log(decodedToken)
+            console.log('supposed to set user')
             next()
         }
         })

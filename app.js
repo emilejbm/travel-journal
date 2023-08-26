@@ -26,7 +26,7 @@ dotenv.config({ path: './.env'})
 // connect to mongoDB server
 connection()
 app.listen(process.env.PORT, ()=> {
-    console.log("server started on port 5002")
+    console.log("server started on port 5000")
 })
 
 // routes
