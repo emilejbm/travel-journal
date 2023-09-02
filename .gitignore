@@ -6,3 +6,4 @@ sql/
 .env
 useful_commands.txt
 vite.config.js
+*.txt
