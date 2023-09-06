@@ -58,7 +58,7 @@ document.body.appendChild(renderer.domElement);
 // shaders
 
 // globe
-const globe_texture = new THREE.TextureLoader().load("./images/no2.jpg");
+const globe_texture = new THREE.TextureLoader().load("./images/globe/no2.jpg");
 const globe_shader_material = new THREE.ShaderMaterial({
     vertexShader: vs, 
     fragmentShader: fs,
