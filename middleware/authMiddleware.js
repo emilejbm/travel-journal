@@ -1,24 +1,32 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+// check for valid jwt or refresh token
 const requireAuth = (req, res, next) => {
-    const token = req.cookies.jwt;
+    const accessToken = req.cookies.jwt_access;
+    const refreshToken = req.cookies.jwt_refresh;
 
-    // check json web token is valid
-    if (token) {
-        jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-        if (err) {
-            console.log(err.message);
-            res.redirect('/login');
-            next();
-        } else {
-            console.log(decodedToken);
-            console.log('supposed to set user');
-            next();
+    if (!accessToken && !refreshToken) {
+        return res.status(401).send('Access denied. No tokens provided');
+    }
+
+    try {
+        const decodedAccessToken = jwt.verify(accessToken, process.env.JWT_SECRET);
+        next();
+    } catch (err) {
+        if (!refreshToken) {
+            return res.status(401).send('Access denied. No refresh token provided.');
         }
-        })
-    } else {
-        res.redirect('/login');
+        try {
+            const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+            const newAccessToken = jwt.sign({_id: decodedRefreshToken._id, username: decodedRefreshToken.username}, process.env.JWT_REFRESH_SECRET, { expiresIn: '1hr' });
+            //res.cookie('jwt_access', newAccessToken, { httpOnly: true, sameSite: 'strict' });
+            res.cookie('jwt_refresh', refreshToken, { httpOnly: true, maxAge: 60 * 60 * 1000 });
+            res.cookie('jwt_access', newAccessToken, { httpOnly: true, maxAge: 60 * 60 * 1000 * 24 });
+            next();
+        } catch (error) {
+            return res.status(400).send('Invalid Token.');
+        }
     }
 };
 

@@ -53,6 +53,7 @@ const controls = new OrbitControls(camera, renderer.domElement); // rotate with 
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
+window.addEventListener('resize', onWindowResize);
 document.body.appendChild(renderer.domElement);
 
 // shaders
@@ -112,3 +113,14 @@ function animate() {
 }
 
 animate();
+
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    const target = new THREE.Vector3(0, 0, 0);
+    const distance = camera.position.distanceTo(target);
+    const fov = (camera.fov * Math.PI) / 180;
+    const viewportHeight = 2 * Math.tan(fov / 2) * distance;
+    const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
+}

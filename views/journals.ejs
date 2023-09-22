@@ -8,6 +8,9 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
     <style>
         body { margin: 0; }
+        .journal-info {
+            display: none
+        }
     </style>
     <script type="importmap">
         {
@@ -20,37 +23,14 @@
 </head>
 <%- include('partials/header'); -%>
 <body>
-    
-    <!-- <div id="app">
-        <p id="greeting">Buenos dias <%- username %>, escribete algo hoy</p>
-        <form action="/<%- username %>/journals" method="post">
-            <button name="addJournalButton" id="add-journal" value="add">+</button>
-        </form>
-        <p id="journalNames"> <%- JSON.stringify(journals) %></p>
+    <div class="journal-info">
+        <table id="journal-table">
+            <% for(var i=0; i < journals.length; i++) { %>
+                <td><%= journals[i].title %>;;;<%= journals[i]._id %></td>
+            <% } %>
+        </table>
+    </div>
 
-    </div> -->
-    <!-- <div id="deleteButton"></div> -->
-    <!-- <script>
-        //const addButton = document.getElementById('add-btn');
-        //const delButton = document.getElementById('del-btn');
-        // addButton.addEventListener('click', async _ => {
-        // try {     
-        //     const response = await fetch('/journals', {
-        //     method: 'post',
-        //     body: { }
-        //     });
-        //     console.log('add button pressed', response);
-        // } catch(err) {
-        //     console.error(`Error: ${err}`);
-        // }
-        // });
-        // delButton.addEventListener('click', async _ => {
-        //     // have to know which one was clicked
-        //     // https://www.geeksforgeeks.org/how-to-get-the-id-of-the-clicked-button-using-javascript-jquery/
-        // })
-
-    </script> -->
-   
     <script type="module" src="/journalGraphics.js"></script>
     
 </body>

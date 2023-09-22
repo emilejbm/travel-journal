@@ -7,3 +7,4 @@ sql/
 useful_commands.txt
 vite.config.js
 *.txt
+*.pem

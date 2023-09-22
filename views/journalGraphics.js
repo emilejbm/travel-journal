@@ -2,7 +2,7 @@ import * as THREE from 'https://threejs.org/build/three.module.js';
 import { OrbitControls } from 'https://threejs.org/examples/jsm/controls/OrbitControls.js';
 
 class JournalGraphic extends THREE.Mesh{
-    constructor(title, w, h, l){
+    constructor(title, id, w, h, l){
         let geometry = new THREE.BoxGeometry(w, h, l);
         let textureLoader = new THREE.TextureLoader();
         textureLoader.setPath('../images/book/');
@@ -32,6 +32,7 @@ class JournalGraphic extends THREE.Mesh{
         this.length = l;
         this.cubeSize = 1;
         this.title = title;
+        this.db_id = id;
         this.cubeActive = false;
     }
     addToGrid(index){
@@ -70,15 +71,19 @@ class JournalGraphic extends THREE.Mesh{
         //this.cubeActive = !this.cubeActive;
         console.log("on mouse click");
         this.scale.setScalar(this.cubeSize * (this.cubeActive ? 1.1 : 1));
+        location.href = "journals/" + this.db_id;
     }
 }
 
 // states
-let journalsCount = 0;
 let intersects = [];
-let hovered = {}
-//const username = document.getElementById("greeting").innerHTML.split(",")[0].split(" ").pop();
-//let navbarHeight = document.getElementById("navbar").offsetHeight;
+let hovered = {};
+let w = 3, h = 3, l = 1;
+let y = 0;
+let camera_pos = 0;
+const username = window.location.pathname.split("/")[1];
+const journalInfoList = []; // [(journalName, journalID)] elements separated by ;;;
+// delim chosen arbitrarily to separate name and id with characters that are not likely to be in name
 
 // graphics setup
 const scene = new THREE.Scene();
@@ -87,7 +92,7 @@ const renderer = new THREE.WebGLRenderer({antialias: true});
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
 const light = new THREE.DirectionalLight( 0xffffff, 3 );
-const controls = new OrbitControls(camera, renderer.domElement); // rotate with mousedown
+//const controls = new OrbitControls(camera, renderer.domElement); // rotate with mousedown
 
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.setPixelRatio(window.devicePixelRatio);
@@ -95,8 +100,13 @@ document.body.appendChild(renderer.domElement);
 document.addEventListener('mousemove', onMouseMove);
 window.addEventListener('resize', onWindowResize);
 document.addEventListener('click', onMouseClick);
-//const addJournalButton = document.getElementById("add-journal");
-//addJournalButton.addEventListener('click', onAddButtonClick);
+window.addEventListener('wheel', onMouseWheel);
+const addJournalButton = document.getElementById("add-journal-btn");
+const journalInfo = document.getElementById('journal-table');
+let journalData = journalInfo.getElementsByTagName("td");
+
+addJournalButton.addEventListener('click', onAddButtonClick);
+
 //document.documentElement.style.setProperty('--nav-height', document.getElementById("navbar").offsetHeight);
 
 async function setBackground(){
@@ -105,11 +115,35 @@ async function setBackground(){
     });
 }
 
-function onAddButtonClick() {
-    var journalGraphic = new JournalGraphic('untitled', 3, 3, 1);
-    journalGraphic.addToGrid(journalsCount);
-    scene.add(journalGraphic);
-    // save it to db
+function onMouseWheel(e){
+    y = e.deltaY * 0.01;
+}
+
+// sends post request to make a journal in users library
+// as of now, titles do not have to be unique
+async function onAddButtonClick() {
+    var journalTitle = prompt('Enter a title for the journal');
+
+    function validateTitle(journalTitle) {
+        // make sure name is not repeated
+        // might want to check for special characters and count, db injection?
+        return true;
+    }
+
+    while (validateTitle(journalTitle) != true) {
+        journalTitle = prompt('Enter a title for the Journal');
+    }
+
+    // save to db
+    fetch('journals', {
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ "username": username, "title": journalTitle, "notes": [] })
+    }).then(
+    location.reload(true));
 }
 
 function onMouseClick(e) {
@@ -120,7 +154,7 @@ function onMouseClick(e) {
 
 function onMouseMove(e) {
     // set x, y (accounting for navbar height) mouse position
-    mouse.set((e.clientX / window.innerWidth) * 2 - 1, (-(e.clientY / window.innerHeight) * 2 + 1) + 0.3);
+    mouse.set((e.clientX / window.innerWidth) * 2 - 1, (-(e.clientY / window.innerHeight) * 2 + 1) + 0.2);
     raycaster.setFromCamera(mouse, camera);
     intersects = raycaster.intersectObjects(scene.children, true);
 
@@ -153,12 +187,12 @@ function onWindowResize() {
     const fov = (camera.fov * Math.PI) / 180;
     const viewportHeight = 2 * Math.tan(fov / 2) * distance;
     const viewportWidth = viewportHeight * (window.innerWidth / window.innerHeight);
-    // scene.traverse((obj) => {
-    //     if (obj.onResize) obj.onResize(viewportWidth, viewportHeight, camera.aspect);
-    // });
 }
 
 function animate() {
+    camera_pos += y;
+    y *= 0.9;
+    camera.position.y = -camera_pos;
     render();
     requestAnimationFrame(animate);
 }
@@ -177,15 +211,13 @@ async function init() {
     light.position.set( 1, 1, 1 ).normalize();
     scene.add(light);
     scene.add(ambientLight);
-    // camera.lookAt(new THREE.Vector3(0, 0, 0));
-    // await setBackground();
-    // query db for journal info to render
     
-    journalsCount = 5;
-    const journalTitles = ["untitled"] * 10;
-
-    for (let i = 0; i < journalsCount; i++){
-        let box = new JournalGraphic(journalTitles[i], 3, 3, 1);
+    for(var i=0;i<journalData.length;i++) {
+        journalInfoList.push(journalData[i].innerHTML);
+        let j_title = journalInfoList[i].split(";;;")[0];
+        let j_id = journalInfoList[i].split(";;;")[1];
+        console.log(j_title, j_id);
+        let box = new JournalGraphic(j_title, j_id, w, h, l);
         box.addToGrid(i);
         scene.add(box);
     }

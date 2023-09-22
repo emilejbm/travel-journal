@@ -6,16 +6,11 @@ const journalSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    content: [{
-        sections: [{
-            title: String,
-            notes: [{
-                title: String,                            
-                body: String,
-                cities: [{
-                    name: String
-                }]
-            }]
+    notes: [{
+        title: String,
+        body: String,
+        cities: [{
+            name: String
         }]
     }]
 });
@@ -27,34 +22,51 @@ const librarySchema = new mongoose.Schema({
         unique: true,
     },
     journals: [{
-        journal: { type: mongoose.Schema.Types.ObjectId, ref: 'journalSchema' },
+        type: mongoose.Schema.Types.ObjectId, ref: 'journal'
     }]
 });
 
+// librarySchema.pre('save', function(next){
+//     Journal.insertMany(this.journals, function(err, res){
+//         if(err) throw err;
+//         next();
+//     })
+// });
+
 librarySchema.statics.getJournals = async function(username){
-    try {
-        const lib = this.findOne({username: username})
-        if (lib) {
-            console.log("found library")
-            return lib.get("journals")
-        } else {
-            console.log("error: library could not be found")
-        }
-    } catch (err) {
-        console.log("error:", err)
-    }
+    // try {
+    //     return this.findOne({owner:username}).populate('journals').lean();
+    // } catch (err) {
+    //     console.log(err);
+    // }
+    // this.findOne({owner:username}).then((lib) => {
+    //     console.log("lib journals are", lib);
+    //     return lib.journals;
+    // })
+    //Library.findOne({owner: username}).populate('journals').lean()
+    // Library.findOne({owner:username}).then((lib) => {
+    //     console.log("lib is", lib);
+    //     return lib.journals;
+    // });
+    const journals = await Library.findOne({owner: username}).populate('journals').lean().exec();
+    return journals.journals;
+    //return lib;
 }
 
-librarySchema.statics.addJournal = async function(username) {
-    try {
-        const journal = await Journal.create({title: "untitled", owner: username});
-        await this.updateOne(
-            {owner: username},
-            {$push: {journals: journal}}
-        );
-    } catch (err) {
-        console.log("error:", err)
-    }
+// add journal to user's library
+librarySchema.statics.addJournal = function(username, title) {
+    Library.findOne({owner: username})
+    .then((lib) => {
+        Journal.create({title: title, owner: username})
+        .then((j) => {
+            lib.journals.push(j);
+            lib.save();
+            console.log('Journal Added');
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    });
 }
 
 librarySchema.statics.deleteJournal = async function(username, journalID) {
@@ -64,7 +76,7 @@ librarySchema.statics.deleteJournal = async function(username, journalID) {
             {$pullAll: {journals: [{_id: journalID}]}}
         );
     } catch (err) {
-        console.log("error:", err)
+        console.log("error:", err);
     }
 }
 
