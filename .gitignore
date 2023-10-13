@@ -8,3 +8,5 @@ useful_commands.txt
 vite.config.js
 *.txt
 *.pem
+design_decisions.md
+to_do.md

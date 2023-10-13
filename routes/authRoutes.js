@@ -13,6 +13,8 @@ router.post('/register', authController.register_post);
 router.get('/logout', authController.logout_get);
 router.get('/:username/journals', requireAuth, authController.journals_get);
 router.post('/:username/journals', requireAuth, authController.journals_post);
-router.get('/:username/journals/:journalID', requireAuth, authController.notes_get);
+router.get('/:username/journals/:journalId', requireAuth, authController.notes_get);
+router.get('/:username/journals/:journalId/fetchNotes', requireAuth, authController.fetchNotes_get);
+router.post('/:username/journals/:journalId/updateNotes', requireAuth, authController.updateNotes_post);
 
 module.exports = router;

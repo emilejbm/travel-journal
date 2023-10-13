@@ -5,7 +5,7 @@ class JournalGraphic extends THREE.Mesh{
     constructor(title, id, w, h, l){
         let geometry = new THREE.BoxGeometry(w, h, l);
         let textureLoader = new THREE.TextureLoader();
-        textureLoader.setPath('../images/book/');
+        textureLoader.setPath('/views/images/book/');
         let bookTextures = [
             new THREE.MeshBasicMaterial({
                 map: textureLoader.load("pagesflipped.jpeg"),
@@ -125,7 +125,7 @@ async function onAddButtonClick() {
     var journalTitle = prompt('Enter a title for the journal');
 
     function validateTitle(journalTitle) {
-        // make sure name is not repeated
+        // do i care about unique titles?
         // might want to check for special characters and count, db injection?
         return true;
     }
@@ -134,16 +134,19 @@ async function onAddButtonClick() {
         journalTitle = prompt('Enter a title for the Journal');
     }
 
-    // save to db
-    fetch('journals', {
-        method: 'POST',
-        headers: {
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ "username": username, "title": journalTitle, "notes": [] })
-    }).then(
-    location.reload(true));
+    try {
+        fetch(window.location.href, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ "username": username, "title": journalTitle, "notes": [] }),
+            keepalive: true
+        }).then(location.reload(true));
+    } catch (err) {
+        console.log("Error creating journal");
+    }
 }
 
 function onMouseClick(e) {

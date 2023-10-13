@@ -9,6 +9,7 @@ const journalSchema = new mongoose.Schema({
     notes: [{
         title: String,
         body: String,
+        lastModified: Date,
         cities: [{
             name: String
         }]
@@ -17,7 +18,7 @@ const journalSchema = new mongoose.Schema({
 
 const librarySchema = new mongoose.Schema({
     owner: {
-        type: String,  // _id from users collection
+        type: String,
         required: true,
         unique: true,
     },
@@ -26,47 +27,29 @@ const librarySchema = new mongoose.Schema({
     }]
 });
 
-// librarySchema.pre('save', function(next){
-//     Journal.insertMany(this.journals, function(err, res){
-//         if(err) throw err;
-//         next();
-//     })
-// });
-
 librarySchema.statics.getJournals = async function(username){
-    // try {
-    //     return this.findOne({owner:username}).populate('journals').lean();
-    // } catch (err) {
-    //     console.log(err);
-    // }
-    // this.findOne({owner:username}).then((lib) => {
-    //     console.log("lib journals are", lib);
-    //     return lib.journals;
-    // })
-    //Library.findOne({owner: username}).populate('journals').lean()
-    // Library.findOne({owner:username}).then((lib) => {
-    //     console.log("lib is", lib);
-    //     return lib.journals;
-    // });
-    const journals = await Library.findOne({owner: username}).populate('journals').lean().exec();
-    return journals.journals;
-    //return lib;
+    try {
+        const journals = await Library.findOne({owner: username}).populate('journals').lean().exec();
+        return journals.journals;
+    } catch (err) {
+        console.log("Error getting journals from db", err);
+    }
 }
 
 // add journal to user's library
 librarySchema.statics.addJournal = function(username, title) {
-    Library.findOne({owner: username})
-    .then((lib) => {
-        Journal.create({title: title, owner: username})
-        .then((j) => {
-            lib.journals.push(j);
-            lib.save();
-            console.log('Journal Added');
-        });
-    })
-    .catch((err) => {
-        console.log(err);
-    });
+    try {
+        Library.findOne({owner: username}).then((lib) => {
+            Journal.create({title: title, owner: username})
+            .then((j) => {
+                lib.journals.push(j);
+                lib.save();
+                console.log('Journal Added');
+            });
+        })
+    } catch (err) {
+        console.log("Error creating journal graphic", err);
+    }
 }
 
 librarySchema.statics.deleteJournal = async function(username, journalID) {
@@ -80,27 +63,39 @@ librarySchema.statics.deleteJournal = async function(username, journalID) {
     }
 }
 
-
-journalSchema.methods.updateTitle = async function(newTitle){
-    this.title = newTitle;
-    await this.save();
-}
-
-journalSchema.methods.updateSectionTitle = async function(newcontent) {
-    // this.content.sections
-    return null;
-}
-
-journalSchema.methods.updateNotesTitle = async function(newcontent) {
-    return null;
-}
-
-journalSchema.methods.updateNotesBody = async function(newcontent) {
-    return null;
-}
-
-journalSchema.methods.updateCities = async function(newcontent) {
-    return null;
+// for testing purposes
+journalSchema.statics.createFakeData = async function(journalId) {
+    console.log("goes to create the fake data");
+    const note1 = {
+        title: "first note",
+        body: "this is the body of the first note",
+        lastModified: "2023-10-20",
+        cities: [
+            {
+                name: "San Juan"
+            },
+            {
+                name: "Carolina"
+            }
+        ]
+    };
+    const note2 = {
+        title: "second note",
+        body: "this is the body of the SECOND note. Now this may be a lot longerrrrr",
+        lastModified: "2023-10-20",
+        cities: [
+            {
+                name: "Granada"
+            },
+            {
+                name: "Sevilla"
+            }
+        ]
+    };
+    const newNotes = [note1, note2];
+    console.log(journalId);
+    var j_id = new mongoose.Types.ObjectId(String(journalId))
+    await Journal.updateOne({_id: j_id}, {$set : {notes: newNotes}});
 }
 
 const Journal = mongoose.model('journal', journalSchema);
