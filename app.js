@@ -9,8 +9,6 @@ const connection = require('./db');
 const express = require('express');
 const cookieParser = require('cookie-parser');
 const authRoutes = require("./routes/authRoutes");
-const { requireAuth, checkUser } = require('./middleware/authMiddleware');
-const User = require('./models/user');
 const https = require('https');
 const fs = require('fs');
 
@@ -34,11 +32,10 @@ const options = {
 };
 
 https.createServer(options, app).listen(process.env.PORT, ()=> {
-    console.log("server started on port 5000");
+    console.log(`server started on port ${process.env.PORT}`);
 });
 
 // routes
-app.get('*', checkUser);
 app.get('/', async (req, res) => {
     token = req.cookies.jwt_access;
     if (token) {

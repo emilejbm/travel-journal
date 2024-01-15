@@ -2,48 +2,10 @@ const User = require('../models/user');
 const { Journal, Library } = require('../models/journal')
 const jwt = require('jsonwebtoken');
 
-// create json web token
 const createTokens = (_id, username) => {
     const accessToken = jwt.sign({id: _id, username: username}, process.env.JWT_SECRET, { expiresIn: '1hr' });
     const refreshToken = jwt.sign({id: _id, username: username}, process.env.JWT_REFRESH_SECRET, { expiresIn: '1d' });
     return {accessToken, refreshToken};
-};
-
-// module.exports.refresh = (req, res) => {
-//     const refreshToken = req.cookies['jwt_refresh'];
-//     if (!refreshToken) {
-//       return res.status(401).send('Access denied. No refresh token provided.');
-//     }
-//     try {
-//         const decodedRefreshToken = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
-//         const newAccessToken = jwt.sign({ _id: decodedRefreshToken._id, username: decodedRefreshToken.username }, process.env.JWT_SECRET, { expiresIn: '1h' });
-//         res.cookie('jwt_access', newAccessToken, { httpOnly: true, maxAge: 60 * 60 * 1000 });
-
-//     } catch (err) {
-//         return res.status(400).send('Invalid refresh token.');
-//     }
-// }
-
-// controller routes
-module.exports.index = (req, res) => {
-    try {
-        const token = req.cookies.jwt_access;
-        if (token) {
-            const username = JSON.parse(atob(token.split('.')[1])).username;
-            res.render('index', {
-                username: username,
-                journalPageCheck: null
-            })
-        } else {
-            res.render('index', {
-                username: null,
-                journalPageCheck: null
-            });
-        }
-    } catch (err) {
-        console.log("Error rendering index page", err);
-    }
-    
 };
 
 module.exports.login_get = (req, res) => {
@@ -92,7 +54,7 @@ module.exports.journals_post = async (req, res) => {
     try {
         const token = req.cookies.jwt_access;
         const username = JSON.parse(atob(token.split('.')[1])).username;
-        const url = 'https://localhost:5002/' + username + '/journals'  // change this
+        const url = process.env.HTTPS_URL + username + '/journals'
         await Library.addJournal(req.body.username, req.body.title);
         res.writeHead(302, {
             Location: url

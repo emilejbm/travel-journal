@@ -27,6 +27,16 @@ class JournalGraphic extends THREE.Mesh{
             }),  
         ];
         super(geometry, bookTextures);
+        this.tintRGB = "0x";
+        for (let i = 0; i < 3; i++){
+            if (title[i]){
+                this.tintRGB = this.tintRGB + title[i].charCodeAt(0).toString(16);
+            }
+        }
+        this.material.forEach((txtr) => {
+            txtr.color.set(parseInt(this.tintRGB));
+            txtr.color.addScalar(0.1);
+        });
         this.width = w;
         this.height = h;
         this.length = l;
@@ -57,13 +67,16 @@ class JournalGraphic extends THREE.Mesh{
     
     onMouseOver(e) {
         this.cubeActive = !this.cubeActive;
-        this.material.forEach((txtrColor) => txtrColor.color.set(0xffd1ad));
+        this.material.forEach((txtr) => txtr.color.addScalar(-0.1));
         this.scale.setScalar(this.cubeSize * (this.cubeActive ? 1.1 : 1));
     }
     
     onMouseOut(e) {
         this.cubeActive = !this.cubeActive;
-        this.material.forEach((txtrColor) => txtrColor.color.set(0xffffff));
+        this.material.forEach((txtr) => {
+            txtr.color.set(parseInt(this.tintRGB));
+            txtr.color.addScalar(0.1);
+        });
         this.scale.setScalar(this.cubeSize * (this.cubeActive ? 1.1 : 1));
     }
     

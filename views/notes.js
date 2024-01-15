@@ -116,7 +116,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
-                console.log("fetched notes are: ", data);
                 return data.notes;
             } else {
                 console.log("error loading notes");
@@ -131,7 +130,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         try {
             const journalId = window.location.href.split("/")[5];
             const url = window.location.href + "/updateNotes";
-            console.log(url)
             fetch(url, {
                 method: 'POST',
                 headers: {

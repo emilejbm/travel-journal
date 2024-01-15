@@ -3,9 +3,7 @@ const authController = require('../controllers/authControllers');
 const {requireAuth, checkUser} = require('../middleware/authMiddleware');
 
 const router = Router();
-
-router.get('/', authController.index);
-// router.get('/refresh', authController.refresh);
+router.get('*', checkUser);
 router.get('/login', authController.login_get);
 router.post('/login', authController.login_post);
 router.get('/register', authController.register_get);
